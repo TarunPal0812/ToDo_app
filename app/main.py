@@ -11,7 +11,7 @@ async def lifespan(app: FastAPI):
     await engine.dispose()
     
 
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 
 @app.get("/")
 async def root():
@@ -19,4 +19,4 @@ async def root():
         "message": "Ok"
     }
 
-app.include_router(todo_router, prefix="/api/todo")
+app.include_router(todo_router, prefix="/api/v1")
