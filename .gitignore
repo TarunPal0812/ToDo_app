@@ -10,4 +10,5 @@ wheels/
 .venv
 .env*
 !.env.sample
- *.db
+
+todo.db

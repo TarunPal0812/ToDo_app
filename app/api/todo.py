@@ -2,7 +2,7 @@ from uuid import UUID
 from fastapi import APIRouter, HTTPException, status
 from app.schemas.todo import TodoResponse, TodoCreate, TodoUpdate
 
-from app.Dependencies.todo_dependendecies import TodoServiceDependency
+from app.dependencies.todo_dependendecies import TodoServiceDependency
 
 
 router = APIRouter(prefix="/todos", tags=["ToDo"])

@@ -17,8 +17,9 @@ class UserLogin(UserBase):
     pass
 
 
-class UserResponse(UserBase):
+class UserResponse(BaseModel):
     id: UUID
+    email: str
     created_at: datetime
     updated_at: datetime
 
