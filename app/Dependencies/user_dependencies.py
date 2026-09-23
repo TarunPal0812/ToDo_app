@@ -10,3 +10,5 @@ def get_user_service(db_session: Annotated[AsyncSession, Depends(get_db)]):
     return UserService(repo)
 
 userServiceDependecy = Annotated[UserService,Depends(get_user_service)]
+
+
