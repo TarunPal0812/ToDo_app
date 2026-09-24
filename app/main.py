@@ -22,7 +22,6 @@ async def calculate_request_time(request: Request, call_next):
     response = await call_next(request)
     total_time = time.perf_counter() - start_time
     print(f"Request: {request.method} {request.url.path} | Time taken: {total_time:.4f}s")
-    response.headers["X-Process-Time"] = str(total_time)
     return response
 
 
