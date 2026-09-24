@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from app.db.database import Base
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import String, DateTime, func
+from sqlalchemy import String, DateTime, func, Boolean
 
 class User(Base):
     __tablename__ = "users"
@@ -20,6 +20,12 @@ class User(Base):
     hash_password: Mapped[str] = mapped_column(
         String(500),
         nullable= False
+    )
+
+    is_active: Mapped[bool] = mapped_column(
+        Boolean(),
+        nullable= False,
+        default= True
     )
 
     created_at: Mapped[datetime] = mapped_column(
