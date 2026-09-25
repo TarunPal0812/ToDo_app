@@ -2,6 +2,7 @@ import time
 from fastapi import FastAPI, Request
 from app.api.todo import router as todo_router
 from app.api.user import router as user_router
+from app.api.auth import router as auth_router
 
 from contextlib import asynccontextmanager
 from app.db.database import creat_table, engine
@@ -31,5 +32,6 @@ async def root():
         "message": "Ok"
     }
 
+app.include_router(auth_router, prefix="/api/v1")
 app.include_router(todo_router, prefix="/api/v1")
 app.include_router(user_router, prefix= "/api/v1")

@@ -13,7 +13,7 @@ from app.models.user import User
 from app.repositories.user import UserRepository
 from app.db.database import get_db
 
-from app.security import verify_token
+from app.security import verify_access_token
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
@@ -33,7 +33,7 @@ async def get_current_user(
             detail= "Invalid token"
         )
     try:
-        claims: dict[str, Any] = verify_token(token)
+        claims: dict[str, Any] = verify_access_token(token)
 
     except Exception as e:
         raise HTTPException(

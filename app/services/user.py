@@ -2,7 +2,7 @@ from app.repositories.user import UserRepository
 from app.schemas.user import UserCreate, UserLogin
 from app.models.user import User
 from fastapi import HTTPException, status
-from app.security import hashed_password, verify_password, generate_token, verify_token
+from app.security import hashed_password, verify_password, generate_access_token, generate_refresh_token
 
 class UserService:
     def __init__(self, repo:UserRepository) -> None:
@@ -48,11 +48,16 @@ class UserService:
             )
 
         # Now generate the Token (header + payload + signature)
-        token: str = generate_token(existing_user.id)
-        
-        return {
-            "token" : token
+        token: str = generate_access_token(existing_user.id)
+
+        refresh_token = generate_refresh_token(existing_user.id)
+
+        response_obj ={
+            "token" : token,
+            "refresh_token": refresh_token
         }
+        
+        return response_obj
 
     
     
