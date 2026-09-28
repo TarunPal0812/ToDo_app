@@ -50,7 +50,7 @@ async def validation_error_handeler(request: Request, exec: RequestValidationErr
 
             }
         )
-        response = ErrorResponse(
+    response = ErrorResponse(
             error= ErrorDetails(
                 code= "VALIDATION_ERROR",
                 message= "validation fail",
@@ -58,7 +58,7 @@ async def validation_error_handeler(request: Request, exec: RequestValidationErr
             )
         )
 
-        return JSONResponse(
+    return JSONResponse(
             status_code= status.HTTP_422_UNPROCESSABLE_CONTENT,
             content= response.model_dump(mode="json")
         )
