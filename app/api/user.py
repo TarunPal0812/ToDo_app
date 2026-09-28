@@ -1,12 +1,14 @@
 from fastapi import APIRouter, HTTPException, status, Response
 from app.schemas.user import UserResponse, UserCreate, UserLogin
+from app.schemas.general_response_schema import SuccessResponse
 from app.dependencies.user_dependencies import userServiceDependecy
 from app.dependencies.secutiry_dependencies import securityDependency
+from app.utils.response import success_response
 
 
 router = APIRouter(prefix="/users",tags=["Users"])
 
-@router.post("/register",response_model= UserResponse)
+@router.post("/register",response_model= SuccessResponse[UserResponse])
 async def register_user(user_service: userServiceDependecy, user_in: UserCreate):
     created_user = await user_service.register(user_in)
     if created_user is None:
@@ -15,7 +17,7 @@ async def register_user(user_service: userServiceDependecy, user_in: UserCreate)
             detail= "unable to create user"
         )
     else:
-        return created_user
+        return success_response(data=created_user, message= "User registerd successfully")
 
 @router.post("/login")
 async def login_user(user_service: userServiceDependecy, user_in: UserLogin, response: Response):
@@ -34,6 +36,6 @@ async def login_user(user_service: userServiceDependecy, user_in: UserLogin, res
         "token": access_token
     }
 
-@router.get("/me", response_model= UserResponse)
+@router.get("/me", response_model= SuccessResponse[UserResponse])
 async def get_me(current_user: securityDependency):
-    return current_user
+    return success_response(data=current_user, message="Getting the user successfully")

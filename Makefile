@@ -1,5 +1,5 @@
 run-dev:
-		APP_ENV=development uv run fastapi dev --port 9000
+		set APP_ENV=development && uv run fastapi dev --port 8000
 
 run-prod:
-		APP_ENV=production uv run fastapi dev --port 9090
+		set APP_ENV=production && uv run fastapi dev --port 9090

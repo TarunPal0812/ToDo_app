@@ -3,19 +3,23 @@ from fastapi import FastAPI, Request
 from app.api.todo import router as todo_router
 from app.api.user import router as user_router
 from app.api.auth import router as auth_router
+from app.errors.handlers import register_exceptions_handelers
+# from contextlib import asynccontextmanager
+# from app.db.database import creat_table, engine
 
-from contextlib import asynccontextmanager
-from app.db.database import creat_table, engine
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    await creat_table()
-    yield
-    await engine.dispose()
+# @asynccontextmanager
+# async def lifespan(app: FastAPI):
+#     await creat_table()
+#     yield
+#     await engine.dispose()
     
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    # lifespan=lifespan
+    description="Async ToDo Application"
+    )
 
+register_exceptions_handelers(app)
 
 @app.middleware("http")
 async def calculate_request_time(request: Request, call_next):

@@ -22,9 +22,9 @@ async def get_db():
         yield session
 
 
-async def creat_table():
-    from app.models.todo import Todo
-    from app.models.user import User
+# async def creat_table():
+#     from app.models.todo import Todo
+#     from app.models.user import User
 
-    async with engine.begin() as connection:
-        await connection.run_sync(Base.metadata.create_all)
+#     async with engine.begin() as connection:
+#         await connection.run_sync(Base.metadata.create_all)

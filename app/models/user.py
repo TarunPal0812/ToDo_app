@@ -1,8 +1,9 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, UTC
 from app.db.database import Base
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import String, DateTime, func, Boolean
+from datetime import datetime
 
 class User(Base):
     __tablename__ = "users"
@@ -39,4 +40,9 @@ class User(Base):
         server_default= func.now(),
         onupdate= func.now(),
         nullable= False
+    )
+
+    password_changed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone= True),
+        default= None
     )

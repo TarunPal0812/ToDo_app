@@ -3,6 +3,7 @@ from app.schemas.user import UserCreate, UserLogin
 from app.models.user import User
 from fastapi import HTTPException, status
 from app.security import hashed_password, verify_password, generate_access_token, generate_refresh_token
+from app.errors.exceptions import UserAlreadyExist
 
 class UserService:
     def __init__(self, repo:UserRepository) -> None:
@@ -11,10 +12,11 @@ class UserService:
     async def register(self, user_in: UserCreate):
         existing_user = await self.repo.get_user_by_email(user_in.email)
         if existing_user:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="User with this email alrady exist"
-            )
+            # raise HTTPException(
+            #     status_code=status.HTTP_409_CONFLICT,
+            #     detail="User with this email alrady exist"
+            # )
+            raise UserAlreadyExist()
         password_hash: str = hashed_password(user_in.password)
 
         user_object = User(

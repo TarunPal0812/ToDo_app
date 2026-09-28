@@ -17,6 +17,7 @@ from app.security import verify_access_token
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
+from datetime import datetime, UTC
 
 bearer = HTTPBearer()
 
@@ -51,7 +52,7 @@ async def get_current_user(
             detail= "Invalid token"
         )
     # Check if the user exist or not
-    elif not user.is_active:
+    if not user.is_active:
         raise HTTPException(
             status_code= status.HTTP_401_UNAUTHORIZED,
             detail= "Invalid token"
@@ -63,7 +64,22 @@ async def get_current_user(
 
     2. after getting the token during the time of verification we can get the latest value of the token version and if it mismatch with the version what we get from token then we can unauthrorize the token
     """
-    
+    # Another approach
+
+    """
+    1. Check the password_change_at field value from user table if its grater then the value of token iat(issued at) then invalid the token 
+    2. O/W this is a valid token
+    """
+    password_changed_at = user.password_changed_at
+
+    if password_changed_at is not None:
+        token_iat = datetime.fromtimestamp(claims["iat"],tz=UTC)
+        if token_iat <= password_changed_at:
+                raise HTTPException(
+                    status_code= status.HTTP_401_UNAUTHORIZED,
+                    detail= "Invalid token"
+                )
+
     
     return user
    
