@@ -25,6 +25,9 @@ class TodoService:
     async def get_all(self,user_id: UUID, filters: TodoListParams) -> tuple[list[Todo], int]:
         return await self.repo.get_all(user_id, filters)
 
+    async def get_all_todos(self, user_id: UUID) -> list[Todo]:
+        return await self.repo.get_all_todos(user_id)
+
     async def get_by_id(self, todo_id: UUID) -> Todo | None:
         return await self.repo.get_by_id(todo_id)
 

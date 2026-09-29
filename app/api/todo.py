@@ -1,5 +1,5 @@
 from uuid import UUID
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, BackgroundTasks
 from app.schemas.todo import TodoResponse, TodoCreate, TodoUpdate, TodoListParams
 
 from app.dependencies.todo_dependendecies import TodoServiceDependency
@@ -11,6 +11,10 @@ from app.dependencies.secutiry_dependencies import securityDependency
 from app.errors.exceptions import TodoNotFound
 
 from typing import Annotated
+import os
+import json
+import tempfile
+from app.utils.process_mail import process_export_mail
 
 
 router = APIRouter(prefix="/todos", tags=["ToDo"])
@@ -30,6 +34,30 @@ async def get_all_todos(service: TodoServiceDependency, current_user: securityDe
         "has_next": filters.page < total_pages,
         "has_previous": filters.page > 1
     })
+
+@router.get("/export")
+async def export_as_json(
+    service: TodoServiceDependency, 
+    current_user: securityDependency,
+    background_tasks: BackgroundTasks
+):
+    todos = await service.get_all_todos(user_id= current_user.id)
+    
+    # Serialize the sqlalchemy models to standard dicts
+    todos_list = [TodoResponse.model_validate(t).model_dump(mode="json") for t in todos]
+    
+    # Ensure temp directory exists in the project root
+    temp_dir = os.path.join(os.getcwd(), "temp")
+    os.makedirs(temp_dir, exist_ok=True)
+    
+    # Create temp file in the project's temp directory
+    fd, filepath = tempfile.mkstemp(suffix=".json", dir=temp_dir)
+    with os.fdopen(fd, 'w') as f:
+        json.dump(todos_list, f, indent=4)
+        
+    background_tasks.add_task(process_export_mail, current_user.email, filepath)
+    
+    return success_response(message="Export initiated. You will receive an email shortly with the JSON file.")
 
 
 @router.get("/{todo_id}", response_model=SuccessResponse[TodoResponse])
@@ -69,3 +97,4 @@ async def delete_todo(service: TodoServiceDependency, todo_id: UUID):
     if not deleted:
         raise TodoNotFound()
     return success_response(message= "Todo deleted successfully")
+
