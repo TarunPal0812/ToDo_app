@@ -11,10 +11,8 @@ from app.dependencies.secutiry_dependencies import securityDependency
 from app.errors.exceptions import TodoNotFound
 
 from typing import Annotated
-import os
-import json
-import tempfile
 from app.utils.process_mail import process_export_mail
+from app.utils.get_todojson_path import get_todojson_file_path
 
 
 router = APIRouter(prefix="/todos", tags=["ToDo"])
@@ -42,18 +40,8 @@ async def export_as_json(
     background_tasks: BackgroundTasks
 ):
     todos = await service.get_all_todos(user_id= current_user.id)
-    
-    # Serialize the sqlalchemy models to standard dicts
-    todos_list = [TodoResponse.model_validate(t).model_dump(mode="json") for t in todos]
-    
-    # Ensure temp directory exists in the project root
-    temp_dir = os.path.join(os.getcwd(), "temp")
-    os.makedirs(temp_dir, exist_ok=True)
-    
-    # Create temp file in the project's temp directory
-    fd, filepath = tempfile.mkstemp(suffix=".json", dir=temp_dir)
-    with os.fdopen(fd, 'w') as f:
-        json.dump(todos_list, f, indent=4)
+ 
+    filepath = get_todojson_file_path(todos)
         
     background_tasks.add_task(process_export_mail, current_user.email, filepath)
     
