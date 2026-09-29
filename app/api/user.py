@@ -1,20 +1,22 @@
-from fastapi import APIRouter, status, Response
+from fastapi import APIRouter, Response, BackgroundTasks
 from app.schemas.user import UserResponse, UserCreate, UserLogin
 from app.schemas.general_response_schema import SuccessResponse
 from app.dependencies.user_dependencies import userServiceDependecy
 from app.dependencies.secutiry_dependencies import securityDependency
 from app.utils.response import success_response
 from app.errors.exceptions import UserUnableToCreate
+from app.services.mailservice import send_welcome_mail
 
 
 router = APIRouter(prefix="/users",tags=["Users"])
 
 @router.post("/register",response_model= SuccessResponse[UserResponse])
-async def register_user(user_service: userServiceDependecy, user_in: UserCreate):
+async def register_user(user_service: userServiceDependecy, user_in: UserCreate, background_task :BackgroundTasks):
     created_user = await user_service.register(user_in)
     if created_user is None:
         raise UserUnableToCreate()
     else:
+        background_task.add_task(send_welcome_mail,recipent= created_user.email)
         return success_response(
             # data=created_user,
             message= "User registerd successfully"
