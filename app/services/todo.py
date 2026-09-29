@@ -1,23 +1,25 @@
 from uuid import UUID
-from fastapi import HTTPException, status
+from fastapi import status
 
 from app.repositories.todo import TodoRepository
 from app.schemas.todo import TodoCreate, TodoUpdate
 from app.models.todo import Todo
+from app.errors.exceptions import TodoAlreadyExist
 
 
 class TodoService:
     def __init__(self, repo: TodoRepository) -> None:
         self.repo = repo
 
-    async def create(self, todo_in: TodoCreate) -> Todo:
+    async def create(self, todo_in: TodoCreate, user_id: UUID) -> Todo:
         try:
-            return await self.repo.create(Todo(**todo_in.model_dump()))
+            return await self.repo.create(Todo(**todo_in.model_dump(),user_id = user_id))
         except:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=f"Todo with name '{todo_in.name}' already exists."
-            )
+            # raise HTTPException(
+            #     status_code=status.HTTP_409_CONFLICT,
+            #     detail=f"Todo with name '{todo_in.name}' already exists."
+            # )
+            raise TodoAlreadyExist()
 
     async def get_all(self) -> list[Todo]:
         return await self.repo.get_all()
@@ -38,10 +40,11 @@ class TodoService:
         try:
             return await self.repo.update(todo_to_update, update_data)
         except:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=f"Todo with name '{todo_in.name}' already exists."
-            )
+            # raise HTTPException(
+            #     status_code=status.HTTP_409_CONFLICT,
+            #     detail=f"Todo with name '{todo_in.name}' already exists."
+            # )
+            raise TodoAlreadyExist()
 
     async def delete(self, todo_id: UUID) -> bool:
         todo_to_delete = await self.repo.get_by_id(todo_id)

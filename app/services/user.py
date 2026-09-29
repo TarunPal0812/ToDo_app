@@ -1,9 +1,9 @@
 from app.repositories.user import UserRepository
 from app.schemas.user import UserCreate, UserLogin
 from app.models.user import User
-from fastapi import HTTPException, status
+from fastapi import status
 from app.security import hashed_password, verify_password, generate_access_token, generate_refresh_token
-from app.errors.exceptions import UserAlreadyExist
+from app.errors.exceptions import UserAlreadyExist, UserUnableToCreate, InvalidCredentials
 
 class UserService:
     def __init__(self, repo:UserRepository) -> None:
@@ -27,27 +27,18 @@ class UserService:
         created_user = await self.repo.create(user_object)
 
         if not created_user:
-            raise HTTPException(
-                status_code= status.HTTP_400_BAD_REQUEST,
-                detail="User unable to create"
-            )
+            raise UserUnableToCreate()
         return created_user
         
 
     async def login(self, user_crendential:UserLogin):
         existing_user = await self.repo.get_user_by_email(user_crendential.email)
         if not existing_user:
-            raise HTTPException(
-                status_code= status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid crendential"
-            )
+            raise InvalidCredentials()
         is_verify = verify_password(user_crendential.password, existing_user.hash_password)
 
         if not is_verify:
-            raise HTTPException(
-                status_code= status.HTTP_401_UNAUTHORIZED,
-                detail="invalid crendential"
-            )
+            raise InvalidCredentials()
 
         # Now generate the Token (header + payload + signature)
         token: str = generate_access_token(existing_user.id)

@@ -5,7 +5,7 @@
 4. check for is_active
 5. check for password changing **
 """
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import Annotated, Any
 
@@ -14,6 +14,7 @@ from app.repositories.user import UserRepository
 from app.db.database import get_db
 
 from app.security import verify_access_token
+from app.errors.exceptions import InvalidToken
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
@@ -29,34 +30,22 @@ async def get_current_user(
     token = crendentials.credentials
 
     if token is None:
-        raise HTTPException(
-            status_code= status.HTTP_401_UNAUTHORIZED,
-            detail= "Invalid token"
-        )
+        raise InvalidToken()
     try:
         claims: dict[str, Any] = verify_access_token(token)
 
     except Exception as e:
-        raise HTTPException(
-            status_code= status.HTTP_401_UNAUTHORIZED,
-            detail= "Invalid token"
-        )
+        raise InvalidToken()
     
     user_id = claims.get("sub")
     user = await UserRepository(db).get_user_by_id(UUID(user_id))
 
     # Check for user exist or not
     if not user:
-        raise HTTPException(
-            status_code= status.HTTP_401_UNAUTHORIZED,
-            detail= "Invalid token"
-        )
+        raise InvalidToken()
     # Check if the user exist or not
     if not user.is_active:
-        raise HTTPException(
-            status_code= status.HTTP_401_UNAUTHORIZED,
-            detail= "Invalid token"
-        )
+        raise InvalidToken()
 
     # Check for the password change
     """
@@ -75,10 +64,7 @@ async def get_current_user(
     if password_changed_at is not None:
         token_iat = datetime.fromtimestamp(claims["iat"],tz=UTC)
         if token_iat <= password_changed_at:
-                raise HTTPException(
-                    status_code= status.HTTP_401_UNAUTHORIZED,
-                    detail= "Invalid token"
-                )
+                raise InvalidToken()
 
     
     return user

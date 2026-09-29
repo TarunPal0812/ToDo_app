@@ -1,9 +1,10 @@
 import uuid
 from datetime import datetime, UTC
 from app.db.database import Base
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, DateTime, func, Boolean
 from datetime import datetime
+
 
 class User(Base):
     __tablename__ = "users"
@@ -45,4 +46,9 @@ class User(Base):
     password_changed_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone= True),
         default= None
+    )
+
+    todos: Mapped[list["Todo"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan"
     )

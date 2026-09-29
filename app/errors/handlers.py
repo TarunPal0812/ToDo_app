@@ -1,11 +1,26 @@
 from fastapi import status, Request, FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from .exceptions import AppError, UserAlreadyExist
+from .exceptions import (
+    AppError, 
+    UserAlreadyExist, 
+    TodoAlreadyExist, 
+    UserUnableToCreate, 
+    InvalidCredentials, 
+    InvalidToken, 
+    UnauthorizedAccess, 
+    TodoNotFound
+)
 from .responses import ErrorDetails, ErrorResponse
 
 ERROR_STATUS_CODE: dict[type[AppError], int] = {
-    UserAlreadyExist: status.HTTP_409_CONFLICT
+    UserAlreadyExist: status.HTTP_409_CONFLICT,
+    TodoAlreadyExist: status.HTTP_409_CONFLICT,
+    UserUnableToCreate: status.HTTP_400_BAD_REQUEST,
+    InvalidCredentials: status.HTTP_401_UNAUTHORIZED,
+    InvalidToken: status.HTTP_401_UNAUTHORIZED,
+    UnauthorizedAccess: status.HTTP_401_UNAUTHORIZED,
+    TodoNotFound: status.HTTP_404_NOT_FOUND,
 }
 
 

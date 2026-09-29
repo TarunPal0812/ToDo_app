@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, HTTPException, status, Depends, Response
+from fastapi import APIRouter, Request, status, Depends, Response
 from typing import Annotated
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.security import verify_refresh_token
@@ -7,6 +7,7 @@ from app.db.database import get_db
 from uuid import UUID
 from app.security import generate_access_token, generate_refresh_token
 from datetime import datetime, UTC
+from app.errors.exceptions import UnauthorizedAccess, InvalidToken
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -18,27 +19,18 @@ async def refresh_access_token(
 ):
     refresh_token = request.cookies.get("refresh-token")
     if not refresh_token:
-        raise HTTPException(
-            status_code= status.HTTP_401_UNAUTHORIZED,
-            detail="Unauthorized access"
-        )
+        raise UnauthorizedAccess()
     try:
         claims = verify_refresh_token(refresh_token)
     except:
-        raise HTTPException(
-            status_code= status.HTTP_401_UNAUTHORIZED,
-            detail="Unauthorized access"
-        )
+        raise UnauthorizedAccess()
     
     userId = claims["sub"]
 
     user = await UserRepository(db).get_user_by_id(UUID(userId))
 
     if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Unauthorized access",
-        )
+        raise UnauthorizedAccess()
 
     # Check the password change for refresh the token
     password_changed_at = user.password_changed_at
@@ -46,10 +38,7 @@ async def refresh_access_token(
     if password_changed_at is not None:
         token_iat = datetime.fromtimestamp(claims["iat"],tz=UTC)
         if token_iat <= password_changed_at:
-                raise HTTPException(
-                    status_code= status.HTTP_401_UNAUTHORIZED,
-                    detail= "Invalid token"
-                )
+                raise InvalidToken()
 
     access_token = generate_access_token(user.id)
     new_refresh_token = generate_refresh_token(user.id)
