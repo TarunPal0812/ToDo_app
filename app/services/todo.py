@@ -2,9 +2,10 @@ from uuid import UUID
 from fastapi import status
 
 from app.repositories.todo import TodoRepository
-from app.schemas.todo import TodoCreate, TodoUpdate
+from app.schemas.todo import TodoCreate, TodoUpdate, TodoListParams
 from app.models.todo import Todo
 from app.errors.exceptions import TodoAlreadyExist
+
 
 
 class TodoService:
@@ -21,8 +22,8 @@ class TodoService:
             # )
             raise TodoAlreadyExist()
 
-    async def get_all(self) -> list[Todo]:
-        return await self.repo.get_all()
+    async def get_all(self,user_id: UUID, filters: TodoListParams) -> tuple[list[Todo], int]:
+        return await self.repo.get_all(user_id, filters)
 
     async def get_by_id(self, todo_id: UUID) -> Todo | None:
         return await self.repo.get_by_id(todo_id)

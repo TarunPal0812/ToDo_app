@@ -1,6 +1,6 @@
 from uuid import UUID
-from fastapi import APIRouter, status
-from app.schemas.todo import TodoResponse, TodoCreate, TodoUpdate
+from fastapi import APIRouter, Query
+from app.schemas.todo import TodoResponse, TodoCreate, TodoUpdate, TodoListParams
 
 from app.dependencies.todo_dependendecies import TodoServiceDependency
 
@@ -10,17 +10,26 @@ from app.utils.response import success_response
 from app.dependencies.secutiry_dependencies import securityDependency
 from app.errors.exceptions import TodoNotFound
 
+from typing import Annotated
+
 
 router = APIRouter(prefix="/todos", tags=["ToDo"])
 
 
 @router.get("/", response_model=SuccessResponse[list[TodoResponse]])
-async def get_all_todos(service: TodoServiceDependency, current_user: securityDependency):
-    todos = await service.get_all()
-    return success_response(
-        data= todos,
-        message= f"Getting all the todos"
-    )
+async def get_all_todos(service: TodoServiceDependency, current_user: securityDependency, filters: Annotated[TodoListParams, Query()]):
+    user_id = current_user.id
+    todos, total = await service.get_all(user_id = user_id, filters = filters)
+    
+    total_pages = (total + filters.limit - 1) // filters.limit
+    return success_response(data=todos, message="Todos fetched successfully", meta={
+        "page": filters.page,
+        "limit": filters.limit,
+        "total_items": total,
+        "total_pages": total_pages,
+        "has_next": filters.page < total_pages,
+        "has_previous": filters.page > 1
+    })
 
 
 @router.get("/{todo_id}", response_model=SuccessResponse[TodoResponse])
